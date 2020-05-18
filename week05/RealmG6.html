@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <div id="mountNode"></div>
+
+
+    <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-3.3.0/dist/g6.min.js"></script>
+    <script>
+        const objects = [
+            'eval',
+            'isFinite',
+            'isNaN',
+            'parseFloat',
+            'parseInt',
+            'decodeURI',
+            'decodeURIComponent',
+            'encodeURI',
+            'encodeURIComponent',
+            // Constructor Properties
+            'Array',
+            'ArrayBuffer',
+            'Boolean',
+            'DataView',
+            'Date',
+            'Error',
+            'EvalError',
+            'Float32Array',
+            'Float64Array',
+            'Function',
+            'Int8Array',
+            'Int16Array',
+            'Int32Array',
+            'Map',
+            'Number',
+            'Object',
+            'Promise',
+            'Proxy',
+            'RangeError',
+            'ReferenceError',
+            'RegExp',
+            'Set',
+            'SharedArrayBuffer',
+            'String',
+            'Symbol',
+            'SyntaxError',
+            'TypeError',
+            'Uint8Array',
+            'Uint8ClampedArray',
+            'Uint16Array',
+            'Uint32Array',
+            'URIError',
+            'WeakMap',
+            'WeakSet',
+            // Other Properties
+            'Atomics',
+            'JSON',
+            'Math',
+            'Reflect',
+        ];
+
+
+        let set = new Set();
+
+        let queue = [];
+
+        for (var p of objects) {
+            queue.push({
+                path: [p],
+                object: this[p]
+            })
+        }
+
+        // console.log(queue);
+
+        let current;
+
+
+        while (queue.length) {
+            current = queue.shift();
+            // console.log(current.path.join('.'))
+            if (set.has(current.object)) continue;
+
+            set.add(current.object);
+            // 
+            // console.log(current);
+
+            for (let p of Object.getOwnPropertyNames(current.object)) {
+
+                
+
+                const property = Object.getOwnPropertyDescriptor(current.object, p);
+
+                console.log(property);
+
+                if (property.hasOwnProperty('value') && ((property.value !== null) && (typeof property.value == 'object') || (typeof property.value == 'object')
+                ) && property.value instanceof Object) {
+                    queue.push({
+                        object: property.value,
+                        path: current.path.concat([p])
+                    })
+                }
+
+                if (property.hasOwnProperty('get') && typeof property.get == 'function') {
+                    queue.push({
+                        object: property.get,
+                        path: current.path.concat([p])
+                    })
+                }
+
+                if (property.hasOwnProperty('set') && typeof property.set == 'function') {
+                    queue.push({
+                        object: property.set,
+                        path: current.path.concat([p])
+                    })
+                }
+
+            }
+        }
+
+
+        // const data = {
+        //     // The array of nodes
+        //     nodes: [
+        //         {
+        //             id: 'node1', // String, unique and required
+        //             x: 100, // Number, the x coordinate
+        //             y: 200, // Number, the y coordinate
+        //         },
+        //         {
+        //             id: 'node2', // String, unique and required
+        //             x: 300, // Number, the x coordinate
+        //             y: 200, // Number, the y coordinate
+        //         },
+        //     ],
+        //     // The array of edges
+        //     edges: [
+        //         {
+        //             source: 'node1', // String, required, the id of the source node
+        //             target: 'node2', // String, required, the id of the target node
+        //         },
+        //     ],
+        // };
+
+        const width = document.getElementById('mountNode').scrollWidth;
+        const height = document.getElementById('mountNode').scrollHeight || 500;
+
+        // const data = {
+        //     "id": "Modeling Methods",
+        //     depth: 0,
+        //     x: -0,
+        //     y: -0,
+        //     "children": [
+        //         {
+        //             "id": "Classification",
+        //             "children": [
+        //                 { "id": "Logistic regression" },
+        //                 { "id": "Linear discriminant analysis" },
+        //                 { "id": "Rules" },
+        //                 { "id": "Decision trees" },
+        //                 { "id": "Naive Bayes" },
+        //                 { "id": "K nearest neighbor" },
+        //                 { "id": "Probabilistic neural network" },
+        //                 { "id": "Support vector machine" }
+        //             ]
+        //         },
+        //         {
+        //             "id": "Consensus",
+        //             "children": [
+        //                 {
+        //                     "id": "Models diversity",
+        //                     "children": [
+        //                         { "id": "Different initializations" },
+        //                         { "id": "Different parameter choices" },
+        //                         { "id": "Different architectures" },
+        //                         { "id": "Different modeling methods" },
+        //                         { "id": "Different training sets" },
+        //                         { "id": "Different feature sets" }
+        //                     ]
+        //                 },
+        //                 {
+        //                     "id": "Methods",
+        //                     "children": [
+        //                         { "id": "Classifier selection" },
+        //                         { "id": "Classifier fusion" }
+        //                     ]
+        //                 },
+        //                 {
+        //                     "id": "Common",
+        //                     "children": [
+        //                         { "id": "Bagging" },
+        //                         { "id": "Boosting" },
+        //                         { "id": "AdaBoost" }
+        //                     ]
+        //                 }
+        //             ]
+        //         },
+        //         {
+        //             "id": "Regression",
+        //             "children": [
+        //                 { "id": "Multiple linear regression" },
+        //                 { "id": "Partial least squares" },
+        //                 { "id": "Multi-layer feedforward neural network" },
+        //                 { "id": "General regression neural network" },
+        //                 { "id": "Support vector regression" }
+        //             ]
+        //         }
+        //     ]
+        // }
+
+
+        const graph = new G6.Graph({
+            width,
+            height,
+            linkCenter: true,
+            container: 'mountNode', // String | HTMLElement, required, the id of DOM element or an HTML node
+            modes: {
+                default: [
+                    {
+                        type: 'collapse-expand',
+                        onChange: function onChange(item, collapsed) {
+                            const data = item.get('model').data;
+                            data.collapsed = collapsed;
+                            return true;
+                        },
+                    },
+                    'drag-canvas',
+                    'zoom-canvas',
+                ],
+
+            },
+            defaultNode: {
+                size: 26,
+                style: {
+                    fill: '#C6E5FF',
+                    stroke: '#5B8FF9',
+                },
+            },
+            defaultEdge: {
+                style: {
+                    stroke: '#A3B1BF',
+                },
+            },
+            layout: {
+                type: 'dendrogram',
+                direction: 'LR',
+                nodeSep: 20,
+                rankSep: 100,
+                radial: true,
+            },
+        });
+
+        graph.node(function (node) {
+            return {
+                label: node.id,
+            };
+        });
+
+        graph.data(data); // Load the data defined in Step 2
+        graph.render(); // Render the graph
+
+        graph.fitView();
+    </script>
+
+</body>
+
+</html>
