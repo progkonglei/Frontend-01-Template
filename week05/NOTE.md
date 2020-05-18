@@ -10,13 +10,10 @@
  
 变量 直接量  表达式  语句 声明  函数调用 微任务 宏任务  JSContext => Realm 
 
-
 JSContext => Realm  (版本 )
 
-Realm === JS 完整的内置对象    
+Realm === JS 完整的内置对象    每一个iframe 都有一个 Realm 
 
+#### 学习方法 
 
-
-  
-
-
+每一个知识点 都有自己知识体系 部分只需要了解即可 
