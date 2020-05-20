@@ -1,6 +1,5 @@
 //  处理字符串 
 
-
 const match = (string) => {
     let foundA = false;
     for (let c of string) {
@@ -8,6 +7,8 @@ const match = (string) => {
             foundA = true;
         } else if (c === 'b' && foundA) {
             return true;
+        } else {
+            foundA = false;
         }
     }
     return false;
