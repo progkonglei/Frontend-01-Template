@@ -1,1 +1,269 @@
-# 每周总结可以写在这里
+# 每周总结可以写在这里 
+
+迷宫里程碑
+
+1. 基本广搜
+2. 可视化
+3. 记录路径
+4. 8个方向
+5. 处理穿墙
+6. Sorted
+7. 最小二叉堆(MinBinaryHeap)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    html, body {
+      height: 100%;
+    }
+    .cell {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: gray;
+      border-bottom: 1px solid white;
+      border-right: solid 1px white;
+      vertical-align: middle;
+    }
+
+    #container {
+      font-size: 0;
+      width: 701px;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <div class="tools">
+    <button id="save">save</button>
+    <button id="clear">clear</button>
+    <button id="start">start</button>
+  </div>
+  <script>
+    class Sorted {
+      constructor (data, compare) {
+        this.data = data;
+        this.compare = compare;
+      }
+      take () {
+        const { data, compare } = this;
+        if (!data.length) return;
+        let min = data[0];
+        let minIndex = 0;
+        for (let i = 0; i < data.length; i++) {
+          if (compare(data[i], min) < 0) {
+            min = data[i];
+            minIndex = i;
+          }
+        }
+        data[minIndex] = data[data.length - 1];
+        data.pop();
+        return min;
+      }
+
+      insert(v) {
+        this.data.push(v);
+      }
+
+      get length () {
+        return this.data.length;
+      }
+    }
+
+    class MinBinaryHeap {
+      constructor (data, compare) {
+        this.data = data;
+        this.compare = compare;
+      }
+
+      take () {
+        const leftChild = (data, parentId) => data[parentId * 2 + 1];
+        const rightChild = (data, parentId) => data[parentId * 2 + 2];
+        const { data, compare } = this;
+        const lastNoLeaf = Math.floor(data.length / 2) -1;
+        for (let i = lastNoLeaf; i >= 0; i--) {
+          let index = i;
+          if (rightChild(data, i) && compare(rightChild(data, i), data[index]) < 0) {
+            index = i * 2 + 2;
+          }
+          if (leftChild(data, i) && compare(leftChild(data, i), data[index]) < 0) {
+            index = i * 2 + 1;
+          }
+
+          if (compare(data[index], data[i]) < 0) {
+            this.swap(i, index)
+          }
+        }
+
+        const result = data[0];
+        data.shift();
+        return result;
+      }
+
+      swap (i, j) {
+        const { data } = this;
+        let t;
+        t = data[i];
+        data[i] = data[j];
+        data[j] = t;
+      }
+
+      insert(v) {
+        this.data.push(v);
+      }
+
+      toString() {
+        const end = [10, 19];
+        function distance([x, y]) {
+          return (x - end[0]) ** 2 + (y - end[1]) ** 2;
+        }
+        return this.data.map(v => distance(v))
+      }
+
+      get length () {
+        return this.data.length;
+      }
+    }
+    const col = 100;
+    const row = 100;
+    let map = localStorage.getItem("map") ? JSON.parse(localStorage.getItem("map")) :  Array.from({length: col * row}).fill(0);
+    const container = document.querySelector("#container");
+    const width = row * ( getCellWidth() + 1) + 1;
+    
+    let mouse = false;
+    
+    container.style.width = `${width}px`;
+    
+    function getCellWidth () {
+      const div = document.createElement("div");
+      div.className = "cell";
+      container.appendChild(div);
+      const width = getComputedStyle(div).width;
+      container.removeChild(div);
+      return parseInt(width);
+    }
+    function show() {
+      for (let i = 0; i < col; i++) {
+        for (let j = 0; j < row; j++) {
+          let div = document.createElement("div");
+          div.className = "cell";
+          container.appendChild(div);
+          if (map[col * i + j] === 1 ) {
+            div.style.backgroundColor = "black";
+          }
+          div.addEventListener("mouseover", () => {
+            if (mouse) {
+              div.style.backgroundColor = "black";
+              map[col * i + j] = 1;
+            }
+          });
+          div.addEventListener("mousedown", () => {
+            div.style.backgroundColor = "black";
+            map[col * i + j] = 1;
+          });
+        }
+      }
+      window.addEventListener("mousedown", () => {
+        mouse = true;
+      })
+      window.addEventListener("mouseup", () => {
+        mouse = false;
+      })
+      window.addEventListener("dragstart", (e) => {
+        e.preventDefault();
+      })
+      window.addEventListener("dragend", (e) => {
+        e.preventDefault();
+      })
+    }
+    async function sleep (t) {
+      return new Promise (resolve => {
+        setTimeout(resolve, t);
+      })
+    }
+    async function findPath(map, start, end) {
+      function distance([x, y]) {
+        return (x - end[0]) ** 2 + (y - end[1]) ** 2;
+      }
+      const collection = new MinBinaryHeap([start], (a, b) => distance(a) - distance(b));
+      
+      async function insert (collection, [x, y], pre) {
+        if (x < 0 || y < 0 || x >= col || y >= row) return;
+        if (map[col * y + x] !== 0) return;
+        map[col * y + x] = pre;
+        container.children[col * y + x].style.backgroundColor = "lightGreen";
+        await sleep(50);
+        collection.insert([x, y]);
+      }
+      
+      while(collection.length) {
+        let [x, y] = collection.take();
+
+        let isFind = [[x, y], [x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].findIndex(v => v[0] === end[0] && v[1] === end[1]);
+        if (isFind !== -1) {
+          let path = [];
+          while (x !== start[0] || y !== start[1]) {
+            await sleep(5);
+            path.push([x, y]);
+            container.children[col * y + x].style.backgroundColor = "pink";
+            [x, y] = map[col * y + x];
+          }
+          return;
+        }; 
+        if (x === end[0] && y === end[1]) return;
+        await insert(collection, [x + 1, y], [x, y]);
+        await insert(collection, [x - 1, y], [x, y]);
+        await insert(collection, [x, y + 1], [x, y]);
+        await insert(collection, [x, y - 1], [x, y]);
+        
+        if (map[col * (y + 1) + x] !== 1 && map[col * y + (x + 1)] !== 1) {
+          await insert(collection, [x + 1, y + 1], [x, y]);
+        }
+        if (map[col * (y - 1) + x] !== 1 && map[col * y + (x + 1)] !== 1) {
+          await insert(collection, [x + 1, y - 1], [x, y]);
+        }
+        if (map[col * (y + 1) + x] !== 1 && map[col * y + (x - 1)] !== 1) {
+          await insert(collection, [x - 1, y + 1], [x, y]);
+        }
+        if (map[col * (y - 1) + x] !== 1 && map[col * y + (x - 1)] !== 1) {
+          await insert(collection, [x - 1, y - 1], [x, y]);
+        }
+
+      }
+    }
+    function setStartAndEnd(start, end) {
+      void function setStart() {
+        const [x, y] = start;
+        container.children[col * y + x].style.backgroundColor = "blue";
+        map[col * y + x] = [x, y];
+      }();
+      void function setEnd() {
+        const [x, y] = end;
+        container.children[col * y + x].style.backgroundColor = "red";
+        map[col * y + x] = [x, y];
+      }();
+      return [start, end];
+    }
+    show();
+    document.querySelector("#start").addEventListener("click", () => {
+      findPath(map, ...setStartAndEnd([0, 0], [80, 62]));
+    })
+    document.querySelector("#clear").addEventListener("click", () => {
+      localStorage.clear();
+      location.reload();
+    })
+
+    document.querySelector("#save").addEventListener("click", () => {
+      localStorage.setItem("map", JSON.stringify(map));
+    })
+  </script>
+</body>
+</html>
+```
